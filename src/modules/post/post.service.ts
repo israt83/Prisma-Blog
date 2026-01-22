@@ -1,5 +1,8 @@
-import { Payload } from "./../../../generated/prisma/internal/prismaNamespace";
-import { Post } from "../../../generated/prisma/client";
+import {
+  Payload,
+  PostWhereInput,
+} from "./../../../generated/prisma/internal/prismaNamespace";
+import { Post, PostStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 
 const createPost = async (
@@ -18,49 +21,67 @@ const createPost = async (
 const getAllPost = async ({
   search,
   tags,
+  isFeatured,
+  status,
+  authorId
 }: {
-  search?: string | undefined;
-  tags?: string[] | [];
+  search: string | undefined;
+  tags: string[] | [];
+  isFeatured: boolean | undefined;
+  status : PostStatus | undefined;
+  authorId : string | undefined
 }) => {
-  const andCondition = [];
+  const andCondition: PostWhereInput[] = [];
   if (search) {
     andCondition.push({
       OR: [
         {
           title: {
-            contains: search ,
+            contains: search,
             mode: "insensitive",
           },
         },
         {
           content: {
-            contains: search ,
+            contains: search,
             mode: "insensitive",
           },
         },
         {
           tags: {
-            has: search ,
+            has: search,
           },
         },
       ],
     });
   }
-    if (tags.length >0){
-        andCondition.push(
-            {
-          tags: {
-            hasEvery: tags as string[],
-          },
-        },
-        )
+  if (tags.length > 0) {
+    andCondition.push({
+      tags: {
+        hasEvery: tags as string[],
+      },
+    });
+  }
 
-    }
+  if(typeof isFeatured === "boolean"){
+    andCondition.push({
+        isFeatured
+    })
+  }
+
+  if(status){
+    andCondition.push({
+        status
+    })
+  }
+  if(authorId){
+    andCondition.push({
+        authorId
+    })
+  }
   const result = await prisma.post.findMany({
     where: {
-      AND: [
-        
-      ],
+      AND: andCondition,
     },
   });
   return result;
