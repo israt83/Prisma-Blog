@@ -13,6 +13,8 @@ router.delete("/:commentId",auth(Role.USER,Role.ADMIN), CommentController.delete
 
 router.patch('/:commentId', auth(Role.USER,Role.ADMIN), CommentController.updateComment);
 
+router.patch('/:commentId/moderate', auth(Role.ADMIN), CommentController.moderateComment);
+
 router.post("/",
     auth(Role.USER,Role.ADMIN),
      CommentController.createComment);
