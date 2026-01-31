@@ -2,7 +2,7 @@ import {
   Payload,
   PostWhereInput,
 } from "./../../../generated/prisma/internal/prismaNamespace";
-import { Post, PostStatus } from "../../../generated/prisma/client";
+import { CommentStatus, Post, PostStatus } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 
 const createPost = async (
@@ -97,7 +97,14 @@ const getAllPost = async ({
     },
     orderBy : {
       [sortBy] : sortOrder 
-    } 
+    },
+    include : {
+      _count : {
+        select : {
+          comments : true
+        }
+      }
+    }
   });
 
   const total = await prisma.post.count({
@@ -131,6 +138,42 @@ const getPostById = async (postId: string) => {
     where: {
       id: postId,
     },
+    include :{
+    comments : {
+      where :{
+        parentCommentId : null,
+        status : CommentStatus.APPROVED
+      },
+      orderBy : {
+        createdAt : "desc"
+      },
+      include :{
+        replies:{
+          where :{
+            status : CommentStatus.APPROVED
+          },
+          orderBy : {
+            createdAt : "desc"
+          },
+          include :{
+            replies : {
+              where :{
+                status : CommentStatus.APPROVED
+              },
+              orderBy : {
+                createdAt : "desc"
+              },
+            },
+          }
+        }
+      }
+    },
+    _count : {
+      select : {
+        comments : true
+      }
+    }
+    }
   });
   return postData;
   })
