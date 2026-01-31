@@ -11,6 +11,8 @@ router.get("/:commentId", CommentController.getCommentById);
 
 router.delete("/:commentId",auth(Role.USER,Role.ADMIN), CommentController.deleteComment);
 
+router.patch('/:commentId', auth(Role.USER,Role.ADMIN), CommentController.updateComment);
+
 router.post("/",
     auth(Role.USER,Role.ADMIN),
      CommentController.createComment);
