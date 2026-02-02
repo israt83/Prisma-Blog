@@ -181,8 +181,114 @@ const getPostById = async (postId: string) => {
   return result;
 };
 
+const getMyPosts = async(authorId : string)=>{
+   await prisma.user.findUniqueOrThrow({
+    where :{
+      id : authorId,
+      status : "ACTIVE"
+    },
+    select :{
+      id : true,
+     
+    }
+  })
+
+
+
+  const result = await prisma.post.findMany({
+    where:{
+      authorId
+    },
+    orderBy :{
+      createdAt : "desc"
+    },
+    include :{
+      _count : {
+        select:{
+          comments : true
+        }
+      }
+    }
+  })
+
+// post count using count method
+
+  const total = await prisma.post.count({
+    where:{
+      authorId
+    }
+  })
+
+    // post count using aggregate
+  // const total = await prisma.post.aggregate({
+  //   _count :{
+  //     id : true
+  //   },
+  //   where :{
+  //     authorId
+  //   }
+  // })
+
+  return {data : result, total};
+}
+
+const updatePost = async(postId:string,data:Partial<Post>,authorId : string ,isAdmin : boolean)=>{
+
+  const postData = await prisma.post.findUniqueOrThrow({
+    where:{
+      id : postId,
+    },
+    select:{
+      id : true,
+      authorId : true
+    }
+  })
+  if( !isAdmin && (postData.authorId !== authorId)){
+    throw new Error("You are not authorized to update this post")
+  }
+
+  if(!isAdmin){
+    delete data.isFeatured;
+  }
+
+  const result = await prisma.post.update({
+    where:{
+      id : postId
+    },
+    data
+  })
+
+  return result;
+
+}
+
+const deletePost = async(postId: string ,authorId:string,isAdmin:boolean) =>{
+    const postData = await prisma.post.findUniqueOrThrow({
+    where:{
+      id : postId,
+    },
+    select :{
+      id : true,
+      authorId : true
+    }
+    })
+
+    if(!isAdmin && (postData.authorId !== authorId)){
+      throw new Error("You are not authorized to delete this post")
+    }
+
+    return await prisma.post.delete({
+      where:{
+        id : postId
+      }
+    })
+}
+
 export const PostService = {
   createPost,
   getAllPost,
-  getPostById
+  getPostById,
+  getMyPosts,
+  updatePost,
+  deletePost
 };
