@@ -4,8 +4,10 @@ import { PostController } from "./post.controller";
 import auth, { Role } from "../../middleware/auth";
 
 const router = Router();
+
 router.get("/my-posts",auth(Role.USER,Role.ADMIN), PostController.getMyPosts);
 router.get('/' ,PostController.getAllPost)
+router.get("/stats",auth(Role.ADMIN), PostController.getStats);
 
 router.get('/:postId',PostController.getPostById);
 

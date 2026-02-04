@@ -284,11 +284,88 @@ const deletePost = async(postId: string ,authorId:string,isAdmin:boolean) =>{
     })
 }
 
+const getStats = async()=>{
+    return await prisma.$transaction(async(tx)=>{
+      const [totalPosts,publishedPosts,draftPosts,archievedPosts,totalComments,approvedComments,totalUsers, adminCount , userCount,totalViews] = await Promise.all([
+        await tx.post.count(),
+        await tx.post.count({
+          where:{
+            status : PostStatus.PUBLISHED
+          }
+        }),
+        await tx.post.count({
+          where:{
+            status : PostStatus.DRAFT
+          }
+        }),
+        await tx.post.count({
+          where:{
+            status : PostStatus.ARCHIVED
+          }
+        }),
+        await tx.comment.count(),
+        await tx.comment.count({
+          where:{
+            status : CommentStatus.APPROVED
+          }
+        }),
+        await tx.user.count(),
+        await tx.user.count({
+          where:{
+            role : "ADMIN"
+          }
+        }),
+        await tx.user.count({
+          where:{
+            role : "USER"
+          }
+        }),
+        await tx.post.aggregate({
+          _sum : {
+            views : true
+          }
+        })
+
+      ])
+      // const totalPosts = await tx.post.count();
+      // const publishedPosts = await tx.post.count({
+      //   where:{
+      //     status : PostStatus.PUBLISHED
+      //   }
+      // })
+      // const draftPosts = await tx.post.count({
+      //   where:{
+      //     status : PostStatus.DRAFT
+      //   }
+      // })
+
+      // const archievedPosts = await tx.post.count({
+      //   where :{
+      //     status : PostStatus.ARCHIVED
+      //   }
+      // })
+
+      return {
+        totalPosts,
+        publishedPosts,
+        draftPosts,
+        archievedPosts,
+        totalComments,
+        approvedComments,
+        totalUsers,
+        adminCount,
+        userCount,
+        totalViews : totalViews._sum.views || 0
+      }
+    })
+}
+
 export const PostService = {
   createPost,
   getAllPost,
   getPostById,
   getMyPosts,
   updatePost,
-  deletePost
+  deletePost,
+  getStats
 };
