@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { PostService } from "./post.service";
 import { PostStatus } from "../../../generated/prisma/enums";
 import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 import { Role } from "../../middleware/auth";
 
-const createPost = async (req: Request, res: Response) => {
+const createPost = async (req: Request, res: Response ,next:NextFunction) => {
   try {
     const user = req.user;
     if (!user) {
@@ -14,7 +14,8 @@ const createPost = async (req: Request, res: Response) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error });
+     next(error);
+    // res.status(500).json({ message: "Internal Server Error", error });
   }
 };
 
@@ -98,7 +99,7 @@ const getMyPosts = async (req: Request, res: Response) => {
   }
 };
 
-const updatePost = async (req: Request, res: Response) => {
+const updatePost = async (req: Request, res: Response ,next:NextFunction) => {
   try {
     const user = req.user;
     if (!user) {
@@ -118,7 +119,9 @@ const updatePost = async (req: Request, res: Response) => {
     );
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Post Update Failed", error });
+    next(error);
+    // res.status(500).json({ message: "Post Update Failed", error });
+    
   }
 };
 

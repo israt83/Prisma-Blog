@@ -1,14 +1,14 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { commentService } from "./comment.service";
 
-const createComment = async(req:Request , res : Response) =>{
+const createComment = async(req:Request , res : Response ,next:NextFunction) =>{
     try {
         const user = req.user;
         req.body.authorId = user?.id;
         const result = await commentService.createComment(req.body);
         res.status(201).json(result);
     } catch (error) {
-        res.status(500).json({message : "Internal Server Error", error});
+       next(error);
     }
 }
 
